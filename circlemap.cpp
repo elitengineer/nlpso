@@ -11,20 +11,15 @@
 
 double f(double *x, double *lambda);
 double Fpp(double z0, double *lambda, int period);
-double Fbif(double z0, double *lambda, double mu, int period, double Fpp_g, double Cpp);
+double Fbif(nlpso_cfg_t cfg, extrenum_t pp, double *lambda);
 
 int main()
 {
 	//Known Test Parameters
-	double x = 0.501492;
+	//double x = 0.501492;
 	double l[] = {0.50511144, 1.4159996};
-	double Cpp = 1e-5;
 	//F_pp  = 2.77618e-07
 	//F_bif = 9.97771e-05
-	double result, Fpp_g;
-	Fpp_g = Fpp(x, l, 2);
-
-	//result = Fbif(x, l, -1.0, 2, Fpp_g, Cpp);
 
 	// Test for PSOpp
 	double xxmin = 0.35;
@@ -38,6 +33,7 @@ int main()
 		.iterations_pp = 300,
 		.iterations_bif = 300,
 		.period = 2,
+		.mu = -1.0,
 		.Cstop_pp = 1e-5,
 		.Cstop_bif = 1e-3,
 		.c_inertia = 0.729,
@@ -77,22 +73,22 @@ double Fpp(double z0, double *lambda, int period)
 	return fabs(z - z0);
 }
 
-double Fbif(double z0, double *lambda, double mu, int period, double Fpp_g, double Cpp)
+double Fbif(nlpso_cfg_t cfg, extrenum_t pp, double *lambda)
 {
-	if (Fpp_g < Cpp)
+	if (pp.value < cfg.Cstop_pp)
 	{
-		double z[period];
-		z[0] = z0;
-		for (int k = 0; k < (period - 1); k++)
+		double z[cfg.period];
+		z[0] = pp.point[0];
+		for (int k = 0; k < (cfg.period - 1); k++)
 		{
 			z[k+1] = f(&z[k], lambda);
 		}
 		double tmp = 1.0;
-		for (int k = 0; k < period; k++)
+		for (int k = 0; k < cfg.period; k++)
 		{
 			tmp = tmp * (1.0 - lambda[1] * cos(2 * M_PI * z[k]));
 		}
-		return fabs(tmp - mu);
+		return fabs(tmp - cfg.mu);
 	}
 	else
 	{
