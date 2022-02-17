@@ -7,6 +7,12 @@
 #include <functional>
 #include <iostream> // Remove after debugging //
 
+struct extrenum_t
+{
+	double value;
+	double *point;
+};
+
 struct nlpso_cfg_t
 {
 	int xdim, ldim;
@@ -22,10 +28,5 @@ struct nlpso_cfg_t
 	std::function<double(nlpso_cfg_t, extrenum_t, double*)> objective_bif;
 };
 
-struct extrenum_t
-{
-	double value;
-	double *point;
-};
-
 extrenum_t PSOpp(nlpso_cfg_t cfg, double *lambda);
+extrenum_t PSObif(nlpso_cfg_t cfg);
