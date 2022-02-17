@@ -1,24 +1,27 @@
+// © 2022 Robert Hoffmann <robert.hoffmann@smail.emt.h-brs.de>
+// I'll release this under a license once I decided which.
 #include "nlpso.hpp"
 
-double PSOpp(nlpso_cfg_t cfg, double *lambda)
+double* PSOpp(nlpso_cfg_t cfg, double *lambda)
 {
 	// Seeding rand function. I just copied this from cppreference lol
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	// Start of Initialization
+	int index_argmin;
 	int iterations = 0;
-	double Fposition[cfg.particles_pp] = {0};
-	double Fpbest[cfg.particles_pp] = {std::numeric_limits<double>::max()};
+	double Fposition[cfg.swarmsize_pp] = {0};
+	double Fpbest[cfg.swarmsize_pp] = {std::numeric_limits<double>::max()};
 	double Fgbest = std::numeric_limits<double>::max();
-	double gbest[cfg.xdim];
-	double position[cfg.xdim][cfg.particles_pp];
-	double pbest[cfg.xdim][cfg.particles_pp];
-	double velocity[cfg.xdim][cfg.particles_pp] = {0};
+	double *gbest = new double[cfg.xdim]; // Maybe a shared pointer in the future?
+	double position[cfg.xdim][cfg.swarmsize_pp];
+	double pbest[cfg.xdim][cfg.swarmsize_pp];
+	double velocity[cfg.xdim][cfg.swarmsize_pp] = {0};
 	// Assign random position one by one within bounds. May need optimization.
 	for (int d = 0; d < cfg.xdim; d++)
 	{
 		std::uniform_real_distribution<> searchspace(cfg.xmin[d], cfg.xmax[d]);
-		for (int p = 0; p < cfg.particles_pp; p++)
+		for (int p = 0; p < cfg.swarmsize_pp; p++)
 		{
 			position[d][p] = searchspace(gen);
 			std::cout << position[d][p] << "  ";// Remove after debugging //
@@ -33,7 +36,7 @@ double PSOpp(nlpso_cfg_t cfg, double *lambda)
 		iterations++;
 		bool isOutOfBound = false;
 		// Check for out of bound positions and don't apply Fpp to them
-		for (int p = 0; p < cfg.particles_pp; p++)
+		for (int p = 0; p < cfg.swarmsize_pp; p++)
 		{
 			for (int d = 0; d < cfg.xdim; d++)
 			{
@@ -50,7 +53,7 @@ double PSOpp(nlpso_cfg_t cfg, double *lambda)
 			}
 		}
 		// Check if value of position is lower than pbest best and overwrite them if yes
-		for (int p = 0; p < cfg.particles_pp; p++)
+		for (int p = 0; p < cfg.swarmsize_pp; p++)
 		{
 			if (Fposition[p] < Fpbest[p])
 			{
@@ -63,9 +66,9 @@ double PSOpp(nlpso_cfg_t cfg, double *lambda)
 		}
 		// Find lowest pbest best. This sadly has to be done the C way because I can't into C++
 		// Also normal arrays are more sympathetic
-		int index_argmin = 0;
+		index_argmin = 0;
 		double min = Fpbest[0];
-		for (int p = 1; p < cfg.particles_pp; p++)
+		for (int p = 1; p < cfg.swarmsize_pp; p++)
 		{
 			if (Fpbest[p] < min)
 			{
@@ -73,9 +76,25 @@ double PSOpp(nlpso_cfg_t cfg, double *lambda)
 				index_argmin = p;
 			}
 		}
+		// Assign gbest from best pbest
 		Fgbest = Fpbest[index_argmin];
-		//gbest = pbest Dimension madness can be done in the later loop where you make those velocity calculations
+		for (int d = 0; d < cfg.xdim; d++)
+		{
+			gbest[d] = pbest[d][index_argmin];// May not needed!
+		}
+		// Calculate velocities and new positions combined with random variation
+		std::uniform_real_distribution<> variation(0.0, 1.0);
+		for (int d = 0; d < cfg.xdim; d++)
+		{
+			for (int p = 1; p < cfg.swarmsize_pp; p++)
+			{
+				position[d][p] = 	position[d][p]
+									+ cfg.c_inertia * velocity[d][p]
+									+ cfg.c_personal * variation(gen) * (pbest[d][p] - position[d][p])
+									+ cfg.c_group * variation(gen) * (gbest[d] - position[d][p]);
+			}
+		}
 	}
 
-	return 1.0;
+	return gbest; // Don't forget delete[] outside this call! (:
 }

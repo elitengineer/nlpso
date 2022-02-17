@@ -1,13 +1,16 @@
+// © 2022 Robert Hoffmann <robert.hoffmann@smail.emt.h-brs.de>
+// I'll release this under a license once I decided which.
+#pragma once
+
 #include <random>
 #include <limits>
 #include <functional>
-#include <iostream>
+#include <iostream> // Remove after debugging //
 
 struct nlpso_cfg_t
 {
 	int xdim, ldim;
 	int swarmsize_pp, swarmsize_bif;
-	int particles_pp, particles_bif;
 	int iterations_pp, iterations_bif;
 	int period;
 	double Cstop_pp, Cstop_bif;
@@ -18,4 +21,4 @@ struct nlpso_cfg_t
 	std::function<double(double, double*, double, int, double, double)> weight_bif;
 };
 
-double PSOpp(nlpso_cfg_t cfg, double *lambda);
+double* PSOpp(nlpso_cfg_t cfg, double *lambda);

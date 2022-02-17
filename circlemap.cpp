@@ -1,3 +1,5 @@
+// © 2022 Robert Hoffmann <robert.hoffmann@smail.emt.h-brs.de>
+// I'll release this under a license once I decided which.
 #include <iostream>
 #include <cmath>
 #include <limits>
@@ -32,21 +34,34 @@ int main()
 	// Fbif timing test stop
 
 	// Test for PSOpp
-	double xxmin = 0.00;
-	double xxmax = 0.01;
+	double xxmin = 0.35;
+	double xxmax = 0.65;
 	nlpso_cfg_t cfg =
 	{
 		.xdim = 1,
-		.particles_pp = 16,
+		.ldim = 2,
+		.swarmsize_pp = 30,
+		.swarmsize_bif = 30,
+		.period = 2,
+		.Cstop_pp = 1e-5,
+		.Cstop_bif = 1e-3,
+		.c_inertia = 0.729,
+		.c_personal = 1.494,
+		.c_group = 1.494,
 		.xmin = &xxmin,
 		.xmax = &xxmax,
 		.f = f,
 		.weight_pp = Fpp,
 		.weight_bif = Fbif
 	};
-	PSOpp(cfg, l);
+	start = std::chrono::high_resolution_clock::now();
+	double *xp = PSOpp(cfg, l);
+	stop = std::chrono::high_resolution_clock::now();
+	std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count() << std::endl;
+	std::cout << xp[0] << std::endl;
 	// End of PSOpp test
 
+	delete[] xp;
 	return 0;
 }
 
