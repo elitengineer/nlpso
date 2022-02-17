@@ -2,7 +2,7 @@
 // I'll release this under a license once I decided which.
 #include "nlpso.hpp"
 
-double* PSOpp(nlpso_cfg_t cfg, double *lambda)
+extrenum_t PSOpp(nlpso_cfg_t cfg, double *lambda)
 {
 	// Seeding rand function. I just copied this from cppreference lol
 	std::random_device rd;
@@ -35,6 +35,7 @@ double* PSOpp(nlpso_cfg_t cfg, double *lambda)
 	}
 	// End of Initialization
 
+	std::uniform_real_distribution<> variation(0.0, 1.0); // Used later in next position calculation
 	while ((iterations < cfg.iterations_pp) && (Fgbest > cfg.Cstop_pp))
 	{
 		iterations++;
@@ -87,7 +88,6 @@ double* PSOpp(nlpso_cfg_t cfg, double *lambda)
 			gbest[d] = pbest[d][index_argmin];// May not needed!
 		}
 		// Calculate velocities and new positions combined with random variation
-		std::uniform_real_distribution<> variation(0.0, 1.0);
 		for (int d = 0; d < cfg.xdim; d++)
 		{
 			for (int p = 1; p < cfg.swarmsize_pp; p++)
@@ -100,5 +100,11 @@ double* PSOpp(nlpso_cfg_t cfg, double *lambda)
 		}
 	}
 
-	return gbest; // Don't forget delete[] outside this call! (:
+	extrenum_t best
+	{
+		.value = Fgbest,
+		.point = gbest
+	};
+
+	return best; // Don't forget delete[] outside this call! (:
 }

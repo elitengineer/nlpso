@@ -50,13 +50,13 @@ int main()
 		.objective_bif = Fbif
 	};
 	auto start = std::chrono::high_resolution_clock::now();
-	double *xp = PSOpp(cfg, l);
+	extrenum_t xp = PSOpp(cfg, l);
 	auto stop = std::chrono::high_resolution_clock::now();
 	std::cout << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl;
-	std::cout << xp[0] << std::endl;
+	std::cout << xp.point[0] << "   " << xp.value << std::endl;
 	// End of PSOpp test
 
-	delete[] xp;
+	delete[] xp.point;
 	return 0;
 }
 

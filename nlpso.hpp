@@ -27,4 +27,4 @@ struct extrenum_t
 	double *point;
 };
 
-double* PSOpp(nlpso_cfg_t cfg, double *lambda);
+extrenum_t PSOpp(nlpso_cfg_t cfg, double *lambda);
