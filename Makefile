@@ -1,4 +1,4 @@
-# © 2022 Robert Hoffmann <robert.hoffmann@smail.emt.h-brs.de>
+# Copyright (C) 2022 Robert Hoffmann <robert.hoffmann@smail.emt.h-brs.de>
 # I'll release this under a license once I decided which.
 CC=g++
 CFLAGS=-g -Wall -lm

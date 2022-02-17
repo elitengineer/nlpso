@@ -1,4 +1,4 @@
-// © 2022 Robert Hoffmann <robert.hoffmann@smail.emt.h-brs.de>
+// Copyright (C) 2022 Robert Hoffmann <robert.hoffmann@smail.emt.h-brs.de>
 // I'll release this under a license once I decided which.
 #include "nlpso.hpp"
 
@@ -11,7 +11,11 @@ double* PSOpp(nlpso_cfg_t cfg, double *lambda)
 	int index_argmin;
 	int iterations = 0;
 	double Fposition[cfg.swarmsize_pp] = {0};
-	double Fpbest[cfg.swarmsize_pp] = {std::numeric_limits<double>::max()};
+	double Fpbest[cfg.swarmsize_pp];
+	for (int p = 0; p < cfg.swarmsize_pp; p++)
+	{
+		Fpbest[p] = std::numeric_limits<double>::max();
+	}
 	double Fgbest = std::numeric_limits<double>::max();
 	double *gbest = new double[cfg.xdim]; // Maybe a shared pointer in the future?
 	double position[cfg.xdim][cfg.swarmsize_pp];
@@ -26,7 +30,7 @@ double* PSOpp(nlpso_cfg_t cfg, double *lambda)
 			position[d][p] = searchspace(gen);
 			std::cout << position[d][p] << "  ";// Remove after debugging //
 		}
-		std::copy(&position[d][0], &position[d][16], pbest[0]); // Save memcpy z to p
+		std::copy(&position[d][0], &position[d][cfg.swarmsize_pp], pbest[0]); // Save memcpy z to p
 		std::cout << std::endl;// Remove after debugging //
 	}
 	// End of Initialization
@@ -49,7 +53,7 @@ double* PSOpp(nlpso_cfg_t cfg, double *lambda)
 			if (!isOutOfBound)
 			{
 				isOutOfBound = false;
-				Fposition[p] = cfg.weight_pp(position[0][p], lambda, cfg.period);
+				Fposition[p] = cfg.objective_pp(position[0][p], lambda, cfg.period);
 			}
 		}
 		// Check if value of position is lower than pbest best and overwrite them if yes

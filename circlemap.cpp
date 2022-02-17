@@ -1,4 +1,4 @@
-// © 2022 Robert Hoffmann <robert.hoffmann@smail.emt.h-brs.de>
+// Copyright (C) 2022 Robert Hoffmann <robert.hoffmann@smail.emt.h-brs.de>
 // I'll release this under a license once I decided which.
 #include <iostream>
 #include <cmath>
@@ -24,14 +24,7 @@ int main()
 	double result, Fpp_g;
 	Fpp_g = Fpp(x, l, 2);
 
-	// Fbif timing test
-	auto start = std::chrono::high_resolution_clock::now();
-	result = Fbif(x, l, -1.0, 2, Fpp_g, Cpp);
-	auto stop = std::chrono::high_resolution_clock::now();
-
-	std::cout << result << std::endl;
-	std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count() << std::endl;
-	// Fbif timing test stop
+	//result = Fbif(x, l, -1.0, 2, Fpp_g, Cpp);
 
 	// Test for PSOpp
 	double xxmin = 0.35;
@@ -42,6 +35,8 @@ int main()
 		.ldim = 2,
 		.swarmsize_pp = 30,
 		.swarmsize_bif = 30,
+		.iterations_pp = 300,
+		.iterations_bif = 300,
 		.period = 2,
 		.Cstop_pp = 1e-5,
 		.Cstop_bif = 1e-3,
@@ -51,13 +46,13 @@ int main()
 		.xmin = &xxmin,
 		.xmax = &xxmax,
 		.f = f,
-		.weight_pp = Fpp,
-		.weight_bif = Fbif
+		.objective_pp = Fpp,
+		.objective_bif = Fbif
 	};
-	start = std::chrono::high_resolution_clock::now();
+	auto start = std::chrono::high_resolution_clock::now();
 	double *xp = PSOpp(cfg, l);
-	stop = std::chrono::high_resolution_clock::now();
-	std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count() << std::endl;
+	auto stop = std::chrono::high_resolution_clock::now();
+	std::cout << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl;
 	std::cout << xp[0] << std::endl;
 	// End of PSOpp test
 

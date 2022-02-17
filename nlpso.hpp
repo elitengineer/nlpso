@@ -1,4 +1,4 @@
-// © 2022 Robert Hoffmann <robert.hoffmann@smail.emt.h-brs.de>
+// Copyright (C) 2022 Robert Hoffmann <robert.hoffmann@smail.emt.h-brs.de>
 // I'll release this under a license once I decided which.
 #pragma once
 
@@ -17,8 +17,14 @@ struct nlpso_cfg_t
 	double c_inertia, c_personal, c_group;
 	double *xmin, *xmax, *lmin, *lmax;
 	std::function<double(double*, double*)> f;
-	std::function<double(double, double*, int)> weight_pp;
-	std::function<double(double, double*, double, int, double, double)> weight_bif;
+	std::function<double(double, double*, int)> objective_pp;
+	std::function<double(double, double*, double, int, double, double)> objective_bif;
+};
+
+struct extrenum_t
+{
+	double value;
+	double *point;
 };
 
 double* PSOpp(nlpso_cfg_t cfg, double *lambda);
