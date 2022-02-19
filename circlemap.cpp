@@ -23,10 +23,10 @@ int main()
 	//F_bif = 9.97771e-05
 
 	// Test for PSObif and PSOpp
-	double xxmin = 0.35;
-	double xxmax = 0.65;
-	double llmin[2] = {0.65, 0.65};
-	double llmax[2] = {2.00, 2.00};
+	double xxmin = 0.00;
+	double xxmax = 1.00;
+	double llmin[2] = {0.35, 0.50};
+	double llmax[2] = {0.65, 2.00};
 	nlpso_cfg_t cfg =
 	{
 		.xdim = 1,
@@ -55,7 +55,7 @@ int main()
 	std::cout << test << std::endl;
 	std::cout << Fpp(test, l, 2) << std::endl;
 	// End of PSOpp test
-	/*
+	
 	// Test for PSObif
 	int points = 100;
 	extrenum_t xp[points];
@@ -84,7 +84,7 @@ int main()
 	plotpoints.close();
 	
 	// End of CSV business
-	*/
+	
 	// Yes, I am not deleting[] the xp.point values, since this program ends here anyway.
 	return 0;
 }
