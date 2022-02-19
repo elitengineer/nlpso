@@ -7,6 +7,7 @@
 #include <chrono>
 #include <random>
 #include <functional>
+#include <fstream>
 #include "nlpso.hpp"
 
 double f(double *x, double *lambda);
@@ -21,9 +22,11 @@ int main()
 	//F_pp  = 2.77618e-07
 	//F_bif = 9.97771e-05
 
-	// Test for PSOpp
+	// Test for PSObif and PSOpp
 	double xxmin = 0.35;
 	double xxmax = 0.65;
+	double llmin[2] = {0.65, 0.65};
+	double llmax[2] = {2.00, 2.00};
 	nlpso_cfg_t cfg =
 	{
 		.xdim = 1,
@@ -41,18 +44,48 @@ int main()
 		.c_group = 1.494,
 		.xmin = &xxmin,
 		.xmax = &xxmax,
+		.lmin = llmin,
+		.lmax = llmax,
 		.f = f,
 		.objective_pp = Fpp,
 		.objective_bif = Fbif
 	};
-	auto start = std::chrono::high_resolution_clock::now();
-	extrenum_t xp = PSOpp(cfg, l);
-	auto stop = std::chrono::high_resolution_clock::now();
-	std::cout << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl;
-	std::cout << xp.point[0] << "   " << xp.value << std::endl;
+	// Test for PSOpp
+	double test = PSOpp(cfg, l).point[0];
+	std::cout << test << std::endl;
+	std::cout << Fpp(test, l, 2) << std::endl;
 	// End of PSOpp test
+	/*
+	// Test for PSObif
+	int points = 100;
+	extrenum_t xp[points];
+	auto start = std::chrono::high_resolution_clock::now();
+	for (int i = 0; i < points; i++)
+	{
+		xp[i] = PSObif(cfg);
+	}
+	auto stop = std::chrono::high_resolution_clock::now();
+	std::cout << std::chrono::duration_cast<std::chrono::seconds>(stop - start).count() << std::endl;
+	
+	// End of PSObif test
 
-	delete[] xp.point;
+	// Writing to CSV file for plotting in MATLAB
+	
+	std::ofstream plotpoints;
+	plotpoints.open("plotpoints.csv");
+	for (int d = 0; d < cfg.ldim; d++)
+	{
+		for (int i = 0; i < points; i++)
+		{
+			plotpoints << xp[i].point[d] << ",";
+		}
+		plotpoints << "\n";
+	}
+	plotpoints.close();
+	
+	// End of CSV business
+	*/
+	// Yes, I am not deleting[] the xp.point values, since this program ends here anyway.
 	return 0;
 }
 

@@ -15,26 +15,18 @@ extrenum_t PSOpp(nlpso_cfg_t cfg, double *lambda)
 	// Start of Initialization
 	int index_argmin;
 	int iterations = 0;
-	double Fposition[cfg.swarmsize_pp] = {0};
-	double Fpbest[cfg.swarmsize_pp];
-	for (int p = 0; p < cfg.swarmsize_pp; p++)
-	{
-		Fpbest[p] = std::numeric_limits<double>::max();
-	}
 	double Fgbest = std::numeric_limits<double>::max();
 	double *gbest = new double[cfg.xdim]; // Maybe a shared pointer in the future?
-	double position[cfg.xdim][cfg.swarmsize_pp];
-	double pbest[cfg.xdim][cfg.swarmsize_pp];
-	double velocity[cfg.xdim][cfg.swarmsize_pp] = {0};
 	// Assign random position one by one within bounds. May need optimization.
+	std::uniform_real_distribution<> searchspace[cfg.xdim];
 	for (int d = 0; d < cfg.xdim; d++)
 	{
-		std::uniform_real_distribution<> searchspace(cfg.xmin[d], cfg.xmax[d]);
-		for (int p = 0; p < cfg.swarmsize_pp; p++)
-		{
-			position[d][p] = searchspace(gen);
-		}
-		std::copy(&position[d][0], &position[d][cfg.swarmsize_pp], pbest[0]); // Save memcpy z to p
+		searchspace[d] = std::uniform_real_distribution<>(cfg.xmin[d], cfg.xmax[d]);
+	}
+	particle swarm[cfg.swarmsize_pp];
+	for (int p = 0; p < cfg.swarmsize_pp; p++)
+	{
+		swarm[p] = particle(cfg.xdim, searchspace);
 	}
 	// End of Initialization
 
@@ -42,64 +34,40 @@ extrenum_t PSOpp(nlpso_cfg_t cfg, double *lambda)
 	while ((iterations < cfg.iterations_pp) && (Fgbest > cfg.Cstop_pp))
 	{
 		iterations++;
-		bool isOutOfBound = false;
 		// Check for out of bound positions and don't apply Fpp to them
 		for (int p = 0; p < cfg.swarmsize_pp; p++)
 		{
-			for (int d = 0; d < cfg.xdim; d++)
+			if(swarm[p].is_within_bounds(cfg.xmin, cfg.xmax))
 			{
-				if ((position[d][p] < cfg.xmin[d]) || (position[d][p] > cfg.xmax[d]))
-				{
-					isOutOfBound = true;
-					break;
-				}
-			}
-			if (!isOutOfBound)
-			{
-				isOutOfBound = false;
-				Fposition[p] = cfg.objective_pp(position[0][p], lambda, cfg.period);
+				swarm[p].Fposition = cfg.objective_pp(swarm[p].position[0], lambda, cfg.period);
 			}
 		}
 		// Check if value of position is lower than pbest best and overwrite them if yes
 		for (int p = 0; p < cfg.swarmsize_pp; p++)
 		{
-			if (Fposition[p] < Fpbest[p])
-			{
-				Fpbest[p] = Fposition[p];
-				for (int d = 0; d < cfg.xdim; d++)
-				{
-					pbest[d][p] = position[d][p];
-				}
-			}
+			swarm[p].update_personal(); // Can be integrated into upper loop
 		}
-		// Find index of lowest pbest. This sadly has to be done the C way because I can't into C++
-		// Also normal arrays are more sympathetic
+		// Find index of lowest pbest
 		index_argmin = 0;
-		double min = Fpbest[0];
+		double min2 = swarm[0].Fpbest;
 		for (int p = 1; p < cfg.swarmsize_pp; p++)
 		{
-			if (Fpbest[p] < min)
+			if (swarm[p].Fpbest < min2)
 			{
-				min = Fpbest[p];
+				min2 = swarm[p].Fpbest;
 				index_argmin = p;
 			}
 		}
 		// Assign gbest from best pbest
-		Fgbest = Fpbest[index_argmin];
+		Fgbest = swarm[index_argmin].Fpbest;
 		for (int d = 0; d < cfg.xdim; d++)
 		{
-			gbest[d] = pbest[d][index_argmin];
+			gbest[d] = swarm[index_argmin].pbest[d];
 		}
 		// Calculate velocities and new positions combined with random variation
-		for (int d = 0; d < cfg.xdim; d++)
+		for (int p = 0; p < cfg.swarmsize_pp; p++)
 		{
-			for (int p = 1; p < cfg.swarmsize_pp; p++)
-			{
-				position[d][p] = 	position[d][p]
-									+ cfg.c_inertia * velocity[d][p]
-									+ cfg.c_personal * variation(gen) * (pbest[d][p] - position[d][p])
-									+ cfg.c_group * variation(gen) * (gbest[d] - position[d][p]);
-			}
+			swarm[p].update_position(cfg.c_inertia, cfg.c_personal * variation(gen), cfg.c_group * variation(gen), gbest);
 		}
 	}
 
@@ -130,16 +98,17 @@ extrenum_t PSObif(nlpso_cfg_t cfg)
 	double *gbest = new double[cfg.ldim]; // Maybe a shared pointer in the future?
 	double position[cfg.ldim][cfg.swarmsize_bif];
 	double pbest[cfg.ldim][cfg.swarmsize_bif];
-	double velocity[cfg.ldim][cfg.swarmsize_bif] = {0};
+	double velocity[cfg.ldim][cfg.swarmsize_bif];
 	// Assign random position one by one within bounds. May need optimization.
-	for (int d = 0; d < cfg.xdim; d++)
+	for (int d = 0; d < cfg.ldim; d++)
 	{
-		std::uniform_real_distribution<> searchspace(cfg.xmin[d], cfg.xmax[d]);
+		std::uniform_real_distribution<> searchspace(cfg.lmin[d], cfg.lmax[d]);
 		for (int p = 0; p < cfg.swarmsize_bif; p++)
 		{
 			position[d][p] = searchspace(gen);
+			pbest[d][p] = position[d][p];
+			velocity[d][p] = 0.0; // Maybe do this outside loop with memset or so
 		}
-		std::copy(&position[d][0], &position[d][cfg.swarmsize_bif], pbest[0]); // Save memcpy z to p
 	}
 	// End of Initialization
 
