@@ -6,6 +6,7 @@
 #include <limits>
 #include <functional>
 #include <array>
+#include <cstring>
 #include <iostream> // Remove after debugging //
 
 class particle
@@ -13,19 +14,20 @@ class particle
 private:
 	int dim;
 public:
-	double *position;
-	double *pbest;
+	double *position = NULL;
+	double *pbest = NULL;
+	double *velocity = NULL;
 	double Fposition = 0;
 	double Fpbest = std::numeric_limits<double>::max();
-	double *velocity;
 
+	// Having the constructor do the new operation would be better, but I don't know
+	// how to suppress the creation of a new object when initializing the array
+	// which leads to double freeing.
 	particle(){}
-	particle(int dimensions, std::uniform_real_distribution<> searchspace[])
+
+	void init(int dimensions, std::mt19937 &gen, std::uniform_real_distribution<> searchspace[])
 	{
-		// Random seed gets run multiple times! Optimize later!
 		dim = dimensions;
-		std::random_device rd;
-		std::mt19937 gen(rd());
 		position = new double[dim];
 		pbest = new double[dim];
 		velocity = new double[dim];
@@ -75,11 +77,9 @@ public:
 
 	~particle()
 	{
-		//delete[] position;
-		//delete[] pbest;
-		//delete[] velocity;
-		// Apparently it gets doubly called and segfaults?
-		// Memory leak because I disabled freeing lol
+		if (position != NULL) delete[] position;
+		if (pbest != NULL) delete[] pbest;
+		if (velocity != NULL) delete[] velocity;
 	}
 };
 

@@ -57,12 +57,38 @@ int main()
 	// End of PSOpp test
 	
 	// Test for PSObif
+	int plots = 6;
 	int points = 100;
-	extrenum_t xp[points];
+	extrenum_t xp[plots][points];
 	auto start = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < points; i++)
 	{
-		xp[i] = PSObif(cfg);
+		xp[0][i] = PSObif(cfg);
+	}
+	cfg.mu = 1.0;
+	for (int i = 0; i < points; i++)
+	{
+		xp[1][i] = PSObif(cfg);
+	}
+	cfg.mu = -1.0; cfg.period = 3;
+	for (int i = 0; i < points; i++)
+	{
+		xp[2][i] = PSObif(cfg);
+	}
+	cfg.mu = 1.0;
+	for (int i = 0; i < points; i++)
+	{
+		xp[3][i] = PSObif(cfg);
+	}
+	cfg.mu = -1.0; cfg.period = 5;
+	for (int i = 0; i < points; i++)
+	{
+		xp[4][i] = PSObif(cfg);
+	}
+	cfg.mu = 1.0;
+	for (int i = 0; i < points; i++)
+	{
+		xp[5][i] = PSObif(cfg);
 	}
 	auto stop = std::chrono::high_resolution_clock::now();
 	std::cout << std::chrono::duration_cast<std::chrono::seconds>(stop - start).count() << std::endl;
@@ -73,11 +99,15 @@ int main()
 	
 	std::ofstream plotpoints;
 	plotpoints.open("plotpoints.csv");
-	for (int d = 0; d < cfg.ldim; d++)
+	for (int p = 0; p < plots; p++)
 	{
-		for (int i = 0; i < points; i++)
+		for (int d = 0; d < cfg.ldim; d++)
 		{
-			plotpoints << xp[i].point[d] << ",";
+			for (int i = 0; i < points; i++)
+			{
+				plotpoints << xp[p][i].point[d] << ",";
+			}
+			plotpoints << "\n";
 		}
 		plotpoints << "\n";
 	}

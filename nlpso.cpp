@@ -26,7 +26,7 @@ extrenum_t PSOpp(nlpso_cfg_t cfg, double *lambda)
 	particle swarm[cfg.swarmsize_pp];
 	for (int p = 0; p < cfg.swarmsize_pp; p++)
 	{
-		swarm[p] = particle(cfg.xdim, searchspace);
+		swarm[p].init(cfg.xdim, gen, searchspace);
 	}
 	// End of Initialization
 
@@ -99,7 +99,7 @@ extrenum_t PSObif(nlpso_cfg_t cfg)
 	particle swarm[cfg.swarmsize_bif];
 	for (int p = 0; p < cfg.swarmsize_bif; p++)
 	{
-		swarm[p] = particle(cfg.ldim, searchspace);
+		swarm[p].init(cfg.ldim, gen, searchspace);
 	}
 	// End of Initialization
 
