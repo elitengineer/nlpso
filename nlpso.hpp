@@ -8,15 +8,17 @@
 #include <array>
 #include <cstring>
 #include <iostream> // Remove after debugging //
+#include <chrono>
 
 class particle
 {
 private:
 	int dim;
 public:
-	double *position = NULL;
-	double *pbest = NULL;
-	double *velocity = NULL;
+	const int dim;
+	std::vector<double> position;
+	std::vector<double> pbest;
+	std::vector<double> velocity;
 	double Fposition = 0;
 	double Fpbest = std::numeric_limits<double>::max();
 
@@ -25,18 +27,18 @@ public:
 	// which leads to double freeing.
 	particle(){}
 
-	void init(int dimensions, std::mt19937 &gen, std::uniform_real_distribution<> searchspace[])
+	void init(const int &dimensions, std::mt19937 &gen, std::uniform_real_distribution<> searchspace[])
 	{
 		dim = dimensions;
-		position = new double[dim];
-		pbest = new double[dim];
-		velocity = new double[dim];
+		position.reserve(dim);
+		pbest.reserve(dim);
+		velocity.reserve(dim);
 		for (int d = 0; d < dim; d++)
 		{
-			position[d] = searchspace[d](gen);
-			pbest[d] = position[d];
-			velocity[d] = 0;
+			position.push_back(searchspace[d](gen));
 		}
+		pbest = position;
+		std::fill(velocity.begin(), velocity.end(), 0);
 	}
 
 	bool is_within_bounds(double *min, double *max)
@@ -56,7 +58,7 @@ public:
 		if (Fposition < Fpbest)
 		{
 			Fpbest = Fposition;
-			for (int d = 0; d < dim; d++)
+			for (int d = 0; d < dim; d++) // Elementwise is faster
 			{
 				pbest[d] = position[d];
 			}
@@ -73,13 +75,6 @@ public:
 
 			position[d] = position[d] + velocity[d];
 		}
-	}
-
-	~particle()
-	{
-		if (position != NULL) delete[] position;
-		if (pbest != NULL) delete[] pbest;
-		if (velocity != NULL) delete[] velocity;
 	}
 };
 
@@ -99,10 +94,10 @@ struct nlpso_cfg_t
 	double Cstop_pp, Cstop_bif;
 	double c_inertia, c_personal, c_group;
 	double *xmin, *xmax, *lmin, *lmax;
-	std::function<double(double*, double*)> f;
-	std::function<double(double, double*, int)> objective_pp;
-	std::function<double(nlpso_cfg_t, extrenum_t, double*)> objective_bif;
+	std::function<double(double*, const std::vector<double>&)> f;
+	std::function<double(const double&, const std::vector<double>&, const int&)> objective_pp;
+	std::function<double(nlpso_cfg_t, const extrenum_t&, const std::vector<double>&)> objective_bif;
 };
 
-extrenum_t PSOpp(nlpso_cfg_t cfg, double *lambda);
-extrenum_t PSObif(nlpso_cfg_t cfg);
+extrenum_t PSOpp(nlpso_cfg_t cfg, const std::vector<double> &lambda);
+extrenum_t PSObif(const nlpso_cfg_t &cfg);

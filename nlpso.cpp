@@ -7,7 +7,7 @@
 // but this comes later.
 #include "nlpso.hpp"
 
-extrenum_t PSOpp(nlpso_cfg_t cfg, double *lambda)
+extrenum_t PSOpp(nlpso_cfg_t cfg, const std::vector<double> &lambda)
 {
 	// Seeding rand function. I just copied this from cppreference lol
 	std::random_device rd;
@@ -80,7 +80,7 @@ extrenum_t PSOpp(nlpso_cfg_t cfg, double *lambda)
 	return best; // Don't forget delete[] outside this call! (:
 }
 
-extrenum_t PSObif(nlpso_cfg_t cfg)
+extrenum_t PSObif(const nlpso_cfg_t &cfg)
 {
 	// Seeding rand function. I just copied this from cppreference lol
 	std::random_device rd;

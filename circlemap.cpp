@@ -10,15 +10,15 @@
 #include <fstream>
 #include "nlpso.hpp"
 
-double f(double *x, double *lambda);
-double Fpp(double z0, double *lambda, int period);
-double Fbif(nlpso_cfg_t cfg, extrenum_t pp, double *lambda);
+double f(double *x, const std::vector<double> &lambda);
+double Fpp(const double &z0, const std::vector<double> &lambda, const int &period);
+double Fbif(nlpso_cfg_t cfg, const extrenum_t &pp, const std::vector<double> &lambda);
 
 int main()
 {
 	//Known Test Parameters
 	//double x = 0.501492;
-	double l[] = {0.50511144, 1.4159996};
+	//double l[] = {0.50511144, 1.4159996};
 	//F_pp  = 2.77618e-07
 	//F_bif = 9.97771e-05
 
@@ -51,9 +51,9 @@ int main()
 		.objective_bif = Fbif
 	};
 	// Test for PSOpp
-	double test = PSOpp(cfg, l).point[0];
-	std::cout << test << std::endl;
-	std::cout << Fpp(test, l, 2) << std::endl;
+	//double test = PSOpp(cfg, l).point[0];
+	//std::cout << test << std::endl;
+	//std::cout << Fpp(test, l, 2) << std::endl;
 	// End of PSOpp test
 	
 	// Test for PSObif
@@ -121,12 +121,12 @@ int main()
 
 // Discrete-time dynamical systems always must use this form.
 // These functions get passed to the NLPSO, that's why they need to have the same input/outputs.
-double f(double *x, double *lambda)
+double f(double *x, const std::vector<double> &lambda)
 {
 	return fmod((x[0] + lambda[0] - lambda[1]/(2 * M_PI) * sin(2 * M_PI * x[0])), 1.0);
 }
 
-double Fpp(double z0, double *lambda, int period)
+double Fpp(const double &z0, const std::vector<double> &lambda, const int &period)
 {
 	double z = z0;
 	for (int i = 0; i < period; i++)
@@ -136,7 +136,7 @@ double Fpp(double z0, double *lambda, int period)
 	return fabs(z - z0);
 }
 
-double Fbif(nlpso_cfg_t cfg, extrenum_t pp, double *lambda)
+double Fbif(nlpso_cfg_t cfg, const extrenum_t &pp, const std::vector<double> &lambda)
 {
 	if (pp.value < cfg.Cstop_pp)
 	{
