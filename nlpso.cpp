@@ -11,7 +11,7 @@ extrenum_t PSOpp(nlpso_cfg_t cfg, const std::vector<double> &lambda)
 {
 	// Seeding rand function. I just copied this from cppreference lol
 	std::random_device rd;
-	std::mt19937 gen(rd());
+	std::default_random_engine gen(rd());
 	// Start of Initialization
 	int index_argmin;
 	int iterations = 0;
@@ -84,7 +84,7 @@ extrenum_t PSObif(const nlpso_cfg_t &cfg)
 {
 	// Seeding rand function. I just copied this from cppreference lol
 	std::random_device rd;
-	std::mt19937 gen(rd());
+	std::default_random_engine gen(rd());
 	// Start of Initialization
 	int index_argmin;
 	int iterations = 0;

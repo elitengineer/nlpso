@@ -15,7 +15,6 @@ class particle
 private:
 	int dim;
 public:
-	const int dim;
 	std::vector<double> position;
 	std::vector<double> pbest;
 	std::vector<double> velocity;
@@ -27,7 +26,7 @@ public:
 	// which leads to double freeing.
 	particle(){}
 
-	void init(const int &dimensions, std::mt19937 &gen, std::uniform_real_distribution<> searchspace[])
+	void init(const int &dimensions, std::default_random_engine &gen, std::uniform_real_distribution<> searchspace[])
 	{
 		dim = dimensions;
 		position.reserve(dim);
