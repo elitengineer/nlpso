@@ -9,6 +9,7 @@
 #include <cstring>
 #include <iostream> // Remove after debugging //
 #include <chrono>
+#include <future>
 
 class particle
 {

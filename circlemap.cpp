@@ -14,6 +14,11 @@ double f(double *x, const std::vector<double> &lambda);
 double Fpp(const double &z0, const std::vector<double> &lambda, const int &period);
 double Fbif(nlpso_cfg_t cfg, const extrenum_t &pp, const std::vector<double> &lambda);
 
+static double* runNLPSO(nlpso_cfg_t cfg)
+{
+	return PSObif(cfg).point;
+}
+
 int main()
 {
 	//Known Test Parameters
@@ -59,61 +64,71 @@ int main()
 	// Test for PSObif
 	int plots = 6;
 	int points = 100;
-	extrenum_t xp[plots][points];
+	std::vector<std::future<double*>> futures;
+	futures.reserve(plots * points);
 	auto start = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < points; i++)
 	{
-		xp[0][i] = PSObif(cfg);
+		futures.push_back(std::async(std::launch::async, runNLPSO, cfg));
 	}
 	cfg.mu = 1.0;
 	for (int i = 0; i < points; i++)
 	{
-		xp[1][i] = PSObif(cfg);
+		futures.push_back(std::async(std::launch::async, runNLPSO, cfg));
 	}
 	cfg.mu = -1.0; cfg.period = 3;
 	for (int i = 0; i < points; i++)
 	{
-		xp[2][i] = PSObif(cfg);
+		futures.push_back(std::async(std::launch::async, runNLPSO, cfg));
 	}
 	cfg.mu = 1.0;
 	for (int i = 0; i < points; i++)
 	{
-		xp[3][i] = PSObif(cfg);
+		futures.push_back(std::async(std::launch::async, runNLPSO, cfg));
 	}
 	cfg.mu = -1.0; cfg.period = 5;
 	for (int i = 0; i < points; i++)
 	{
-		xp[4][i] = PSObif(cfg);
+		futures.push_back(std::async(std::launch::async, runNLPSO, cfg));
 	}
 	cfg.mu = 1.0;
 	for (int i = 0; i < points; i++)
 	{
-		xp[5][i] = PSObif(cfg);
+		futures.push_back(std::async(std::launch::async, runNLPSO, cfg));
 	}
-	auto stop = std::chrono::high_resolution_clock::now();
-	std::cout << std::chrono::duration_cast<std::chrono::seconds>(stop - start).count() << std::endl;
-	
 	// End of PSObif test
 
 	// Writing to CSV file for plotting in MATLAB
-	
+
 	std::ofstream plotpoints;
 	plotpoints.open("plotpoints.csv");
+
+	std::vector<double*> tmp;
+	tmp.reserve(points*plots);
+	for (size_t i = 0; i < futures.size(); i++)
+	{
+		tmp.push_back(futures[i].get());
+	}
+
 	for (int p = 0; p < plots; p++)
 	{
 		for (int d = 0; d < cfg.ldim; d++)
 		{
 			for (int i = 0; i < points; i++)
 			{
-				plotpoints << xp[p][i].point[d] << ",";
+				plotpoints << tmp[p*points + i][d] << ",";
 			}
 			plotpoints << "\n";
 		}
 		plotpoints << "\n";
 	}
-	plotpoints.close();
 	
+	plotpoints.close();
+
 	// End of CSV business
+
+	auto stop = std::chrono::high_resolution_clock::now();
+	std::cout << std::chrono::duration_cast<std::chrono::seconds>(stop - start).count() << std::endl;
 	
 	// Yes, I am not deleting[] the xp.point values, since this program ends here anyway.
 	return 0;
